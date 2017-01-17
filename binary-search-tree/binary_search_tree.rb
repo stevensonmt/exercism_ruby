@@ -1,6 +1,19 @@
 class Bst
   VERSION = 1
 
+  class EmptyNode
+    def initialize(num)
+      @data = num
+      @left = EmptyNode.new
+      @right = EmptyNode.new
+    end
+
+    def insert(*)
+      false
+    end
+
+  end
+
   attr_reader :data, :left, :right
   def initialize(data)
     @data = data
@@ -12,6 +25,7 @@ class Bst
     when 1 then insert_left(num)
     when -1 then insert_right(num)
     when 0 then insert_left(num) # the value is already present
+    else raise "something went wrong during insertion"
     end
 
     @nodes += 1
@@ -29,18 +43,11 @@ class Bst
   private
 
   def insert_left(value)
-    if left
-      left.insert(value)
-    else
-      @left = Bst.new(value)
-    end
+    left && left.insert(value) || @left = Bst.new(value)
   end
 
   def insert_right(value)
-    if right
-      right.insert(value)
-    else
-      @right = Bst.new(value)
-    end
+    right && right.insert(value) || @right = Bst.new(value)
   end
+
 end
