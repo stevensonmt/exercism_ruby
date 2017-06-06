@@ -1,19 +1,19 @@
 #!/usr/bin/env ruby
 require 'minitest/autorun'
-require_relative 'alphametics'
+require_relative 'alphametics5'
 
 # Common test data version: 1.0.0 b9bada8
 class AlphameticsTest < Minitest::Test
 
   def test_puzzle_with_three_letters
-    skip
+    # skip
     input = 'I + BB == ILL'
     expected = { 'B' => 9, 'I' => 1, 'L' => 0 }
     assert_equal expected, Alphametics.solve(input)
   end
 
   def test_solution_must_have_unique_value_for_each_letter
-    skip
+    # skip
     input = 'A == B'
     expected = {}
     assert_equal expected, Alphametics.solve(input)
@@ -64,7 +64,7 @@ class AlphameticsTest < Minitest::Test
   # but an optimised solution can solve it fairly quickly.
   # (It's OK to submit your solution without getting this test to pass.)
   def test_puzzle_with_ten_letters
-    #  skip
+     skip
     input = 'AND + A + STRONG + OFFENSE + AS + A + GOOD == DEFENSE'
     expected = { 'A' => 5, 'D' => 3, 'E' => 4, 'F' => 7,
                  'G' => 8, 'N' => 0, 'O' => 2, 'R' => 1,

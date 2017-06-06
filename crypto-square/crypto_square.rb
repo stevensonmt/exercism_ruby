@@ -1,17 +1,18 @@
+# place text characters into array of arrays with 2nd level arrays of n length, filled with spaces as needed
 class Crypto
 
-attr_accessor :text, :size
+attr_accessor :text
 
   def initialize(text)
     @text = text
   end
 
   def normalize_plaintext
-    text.downcase.split(/\W/).join
+    text.downcase.gsub(/\W/, "")
   end
 
   def plaintext_segments
-    normalize_plaintext.chars.each_slice(size).map(&:join)
+    plain_segmentation(normalize_plaintext.chars, columns)
   end
 
   def size
@@ -20,10 +21,10 @@ attr_accessor :text, :size
 
   def ciphertext
     ciphertext = ""
-    (0..size).each do |i|
+    (0..columns).each do |i|
       plaintext_segments.each do |seg|
         if seg.chars[i]
-          ciphertext += seg.chars[i]
+          ciphertext << seg.chars[i]
         next
         end
       end
@@ -32,23 +33,40 @@ attr_accessor :text, :size
   end
 
   def normalize_ciphertext
-    p ciphertext.chars.each_slice(size-1).map(&:join).join(" ")
+    if rows*columns == ciphertext.length
+      cipher_segmentation(ciphertext.chars, rows)
+    elsif ciphertext.length < 4
+      cipher_segmentation(ciphertext.chars, rows+1)
+    else
+      normalize_array = ciphertext.chars
+      fullsegments = normalize_array[0..((columns - empty_spaces)*rows - 1)]
+      fullsegments = cipher_segmentation(fullsegments, rows)
+      partialsegments = normalize_array[(columns - empty_spaces)*rows..-1]
+      partialsegments = cipher_segmentation(partialsegments, rows-1)
+      norm_cipher = fullsegments + " " + partialsegments
+      norm_cipher
+    end
   end
 
   private
 
-  def columns
-    Math.sqrt(normalize_plaintext.length).round == Math.sqrt(text.length) ? Math.sqrt(normalize_plaintext.length) : (Math.sqrt(normalize_plaintext.length) + 0.5).round
+  def columns #plaintext segment length
+    Math.sqrt(normalize_plaintext.length).ceil
   end
 
-  def rows
-    columns == Math.sqrt(normalize_plaintext.length) ? columns : columns - 1
+  def rows #ciphertext segment length
+    columns**2 == normalize_plaintext.length ? columns : columns - 1
   end
 
   def empty_spaces
-    return if normalize_plaintext.length == columns * rows
-    normalize_plaintext % columns
+    (columns*rows) - normalize_plaintext.length
   end
 
+  def cipher_segmentation(text, length)
+    text.each_slice(length).map(&:join).join(" ")
+  end
+
+  def plain_segmentation(text, length)
+    text.each_slice(length).map(&:join)
+  end
 end
-# p Math.sqrt(Crypto.new('Oh hey, this is nuts!').normalize_plaintext.length).to_s.split(".").first.to_i

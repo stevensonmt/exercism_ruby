@@ -103,3 +103,7 @@ class Alphametics
 
   end
 end
+t1 = Time.now
+p Alphametics.solve("SEND + MORE == MONEY")
+t2 = Time.now
+p t2-t1

@@ -10,32 +10,16 @@ class Alphametics
       @input = input
       words = words(input)
       letters = letters(words)
-      exponents = exponents(letters)
-      p exponents.length
+      exponents = (0..words[-1].length-1).to_a
       candidates = letters_to_keys(letters)
-      p candidates
       left_most_digit_of_sum_max(words, candidates)
       left_most_digit_is_not_0(first_letters(words), candidates)
-      p candidates
-      exponents.each_key do |current_exp|
-        guesses = generate_guesses(candidates, exponents, current_exp)
-        p guesses
-        guess(guesses, current_exp)
-      end
-
-      # guess(words)
+      segments_to_chk = generate_segments(words, exponents)
+      guessing(exponents, candidates, words, segments_to_chk, potential_values = [])
     end
 
     def words(input)
       input.split(/\s\W*/)
-    end
-
-    def summands(words) #takes the input and separates summands from sum, removing the "+" character, returns array of "words" as strings
-      words[0..-2]
-    end
-
-    def sum(words) # takes the input and separates sum from summands, returning a string of only letters
-      words[-1]
     end
 
     def letters(words)
@@ -44,34 +28,10 @@ class Alphametics
       letters
     end
 
-    def exponents(letters) # create a hash of numeral places and the letters in those places
-      exponents  = {}
-      letters.each_index do |ndx|
-        exponents[ndx] = []
-        letters.each do |ltr|
-          exponents[ndx] << ltr[ndx]
-          exponents[ndx] = exponents[ndx].compact
-        end
-      end
-      exponents
-    end
-
     def letters_to_keys(letters) # create hash of letters and their possible values along with the exponent of the places they occupy in their numbers
       candidates = {}
       letters.each { |ary| ary.each {|ltr| candidates[ltr] = DIGITS } }
       candidates
-    end
-
-    def guess(guesses, exp)
-      guesses.each do |guess|
-        p "++++++"
-        p guesses.length
-        reject_guess?(guesses, guess, @letters_to_chk, exp)
-        p "======"
-        p guesses.length
-      end
-        p @candidates
-      # end
     end
 
     def left_most_digit_of_sum_max(words, candidates) # the first digit of the sum has its value considerably constrained by the number summands when the sum has more digits than any of the individual summands
@@ -81,79 +41,122 @@ class Alphametics
     end
 
     def left_most_digit_is_not_0(letters, candidates) # the first digit of any number cannot be zero
-      letters.each {|letter| p letter ; p candidates[letter] ; candidates[letter] -= [0] ; p candidates[letter]}
+      letters.each {|letter| candidates[letter] -= [0] }
     end
 
     def first_letters(words) # create an array of the first letter of each word -- for determining which letters cannot be zero
       a = []
       words.each { |word| a << word[0]}
-      p a.uniq
+      a.uniq
     end
 
-    def generate_guesses(candidates, exponents, current_exp)
-      potential_values = []
-      @letters_to_chk = exponents[current_exp]
-      @letters_to_chk.each do |ltr|
+    def int_sub_for_letter(segments_to_chk, letters_to_chk, ltr, guess) # substitute numbers for letters in string
+      segments_to_chk.join("&&&").gsub!(ltr,guess[letters_to_chk.index(ltr)].to_s).split("&&&")
+    end
+
+    def guessing(exponents, candidates, words, segments, potential_values = [])
+      exp = 0
+      while exp < exponents.length
+        # current_segments = segments_to_chk[exp]
+        # current_letters = letters_to_chk(current_segments)
+        # p potential_values = get_potential_values(candidates, current_letters, potential_values)
+        guesses = generate_guesses(candidates, words, segments, exp, potential_values)
+        potential_values = []
+        guesses.each do |guess|
+          if check_each_guess(guess, segments, current_letters, exp)
+            partial_solution = current_letters.zip(guess).to_h
+            if partial_solution.keys == candidates.keys
+              p "solution = #{partial_solution}"
+              exp = exponents.length
+              return partial_solution
+              p exp
+            else
+              candidates.merge!(partial_solution)
+              p candidates
+              exp += 1
+              p exp
+
+
+            end
+          end
+        end
+      end
+    end
+
+    def get_potential_values(candidates, current_letters, potential_values)
+      current_letters.each do |ltr|
         potential_values << candidates[ltr]
       end
+      potential_values
+    end
+
+    def generate_guesses(candidates, words, segments, exp, potential_values)
+      current_letters = letters_to_chk(exp, segments)
+      p potential_values = get_potential_values(candidates, current_letters, potential_values)
+      case
+      when potential_values[0].class == Array
       guesses = potential_values[0].product(*potential_values[1..-1])
-      return guesses
-    end
-
-    def check_summation(letters, guess, exp) # check that guess satisfies the summation
-      nums = int_sub_for_letter(@input, letters, guess)
-      nums #= nums.split(/\d*[A-Z]|\b\D*/).delete_if{|i| i==""}.collect {|i| i = i.to_i}
-      # nums[0..-2].reduce(:+).to_s[-1].to_i == nums[-1]
-      # summands(words(nums)).collect{|x| x.to_i}.reduce(:+) == sum(words(nums))[-1].to_i
-    end
-
-    def check_guess(guess, exp)
-      p guess[0..-2].reduce(:+) == (guess[-1] || guess[-1]+10**(exp+1))
-    end
-
-    def reject_guess?(guesses, guess, letters, exp)
-      unless check_summation(letters, guess, exp)
-        p "//////////////////////////"
-        p guess
-        p guesses.index(guess)
-        p guesses
-        guesses -= [guess]
-        p guesses.length
+        guesses.reject!{|guess| guess.uniq.length != guess.length}
+      when potential_values[0].class == Integer
+        guesses = [potential_values[0..-2]].product(potential_values[-1])
       end
-      # update_candidates(letters, guesses)
+      guesses
     end
 
-  def update_candidates(letters, guesses)
-    p guesses
-    p letters
-    letters.each_with_index do |ltr, ndx|
-      h = { ltr => [] }
-    #   p @candidates[ltr]
-    #   @candidates[ltr] = []
-    #   p @candidates[ltr]
+    def check_each_guess(guess, current_segments, current_letters, current_exp)
+      current_letters = letters_to_chk(exp, segments)
+      nums_to_chk = current_segments
+      current_letters.each do |ltr|
+        nums_to_chk = int_sub_for_letter(nums_to_chk, current_letters, ltr, guess)
+      end
+      nums_to_chk.collect {|i| i.reverse.to_i}[0..-2].reduce(:+).to_s[-(current_exp+1)..-1] == nums_to_chk[-1].reverse
+    end
+
+    def generate_segments(words, exponents)
+      segments_to_chk = {}
+      exponents.each do |exp|
+        segments_to_chk[exp] = words.collect {|word| word.reverse[0..exp]}
+      end
+      segments_to_chk
+    end
+
+    def letters_to_chk(exp, segments, current_letters = [])
+      segments[exp].join.chars.uniq - current_letters
+    end
+
+    def update_candidates(letters_to_chk, guesses, candidates)
+      letters_to_chk.each_with_index do |ltr, ndx|
+        candidates[ltr] = guesses.collect{|guess| guess[ndx]}.uniq
+      end
+    end
+
+    def take_a_guess(guesses, segments_to_chk, exponents, current_exp)
       guesses.each do |guess|
-        p guess
-        unless h[ltr].include?(guess[ndx])
-          h[ltr] += [guess[ndx]]
+        letters_to_chk = letters_to_chk(segments_to_chk)
+        letters_to_chk.each do |ltr|
+          int_sub_for_letter(segments_to_chk, letters_to_chk, ltr, guess)
         end
-        @candidates.merge!(h)
-        p @candidates
+        p segments_to_chk.collect {|i| i.reverse.to_i}[0..-2].reduce(:+).to_s[-(current_exp+1)..-1]
+        p segments_to_chk[-1].reverse
+        (current_exp..exponents[-1]).to_a.each do |new_exp|
+          if segments_to_chk.collect {|i| i.reverse.to_i}[0..-2].reduce(:+).to_s[-(current_exp+1)..-1] == segments_to_chk[-1].reverse
+
+            next new_exp
+          else
+            p "boo"
+            next guess
+          end
+        end
       end
     end
-  end
 
-    def int_sub_for_letter(input, letters, guess) # substitute numbers for letters in string
-      string = input
-      (0..guess.length-1).each do |i|
-        string = string.gsub(letters[i], guess[i].to_s)
-      end
-      p string
+    def int_sub_for_letter(segments_to_chk, letters_to_chk, ltr, guess) # substitute numbers for letters in string
+      segments_to_chk.join("&&&").gsub!(ltr,guess[letters_to_chk.index(ltr)].to_s).split("&&&")
     end
 
     def solution(guess, letters) # generate solution hash without mutating candidates hash
       letters.zip(guess).to_h
     end
-
 
   end
 end

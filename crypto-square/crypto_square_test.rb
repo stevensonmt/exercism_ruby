@@ -85,7 +85,7 @@ class CryptoTest < Minitest::Test
   end
 
   def test_another_normalized_ciphertext
-    skip
+    # skip
     crypto = Crypto.new(
       'If man was meant to stay on the ground god would have given us roots',
     )
@@ -94,14 +94,14 @@ class CryptoTest < Minitest::Test
   end
 
   def test_normalized_ciphertext_with_punctuation
-    skip
+    # skip
     crypto = Crypto.new('Have a nice day. Feed the dog & chill out!')
     expected = 'hifei acedl veeol eddgo aatcu nyhht'
     assert_equal expected, crypto.normalize_ciphertext
   end
 
   def test_normalized_ciphertext_when_just_less_then_a_full_square
-    skip
+    # skip
     crypto = Crypto.new('I am')
     assert_equal 'im a', crypto.normalize_ciphertext
   end
