@@ -1,26 +1,26 @@
 class Nucleotide
 
-  DEFAULTS = {"A" => 0, "C" => 0, "G" => 0, "T" => 0}
+  NUCLEOTIDES = ["A", "G", "C", "T"]
 
   def self.from_dna(input)
-    h = input.chars.sort.group_by{|i| i}
-    h.each{|k,v| h[k] = v.size }
-    h = DEFAULTS.merge(h)
-    Nucleotide.new(h)
+    Nucleotide.new(input)
   end
 
-  def initialize(counts)
-    @counts = counts
-    raise ArgumentError if DEFAULTS.keys != @counts.keys
+  def initialize(dna)
+    @dna = dna
+    raise ArgumentError unless valid_DNA?
   end
 
   def count(ltr)
-    @counts[ltr]
+    histogram[ltr]
   end
 
-
   def histogram
-    @counts
+    NUCLEOTIDES.each_with_object({}){|char, o| o[char] = @dna.count(char)}
+  end
+
+  def valid_DNA?
+    (@dna.chars.uniq - NUCLEOTIDES).empty?
   end
 
 end
