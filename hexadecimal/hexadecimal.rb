@@ -10,7 +10,7 @@ class Hexadecimal
     if valid_hex?
       get_exponents_as_hash.sum{|k,v| v*16**k}
     else
-      0
+      return 0
     end
   end
 
@@ -19,11 +19,7 @@ class Hexadecimal
   end
 
   def get_exponents_as_hash
-    @hex.each_with_index.with_object({}){|en, h| h[en[1]] = hex_to_i(en[0])}
-  end
-
-  def hex_to_i(str)
-    CONVERSION_TABLE[str]
+    @hex.each_with_index.with_object({}){|en, h| h[en[1]] = CONVERSION_TABLE[en[0]]}
   end
 
 end
