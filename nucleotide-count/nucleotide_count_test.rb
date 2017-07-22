@@ -51,4 +51,14 @@ class NucleotideTest < Minitest::Test
       Nucleotide.from_dna('JOHNNYAPPLESEED')
     end
   end
+
+  def test_two_calls
+    dna = Nucleotide.from_dna('GGGGGGGG')
+    histogram = dna.histogram
+    dna = Nucleotide.from_dna('CCCCCCCC')
+    expected = { 'A' => 0, 'T' => 0, 'C' => 0, 'G' => 8 }
+    assert_equal expected, histogram
+    expected = { 'A' => 0, 'T' => 0, 'C' => 8, 'G' => 0 }
+    assert_equal expected, dna.histogram
+  end
 end

@@ -9,10 +9,10 @@ class Anagram
   end
 
   def match(candidates)
-    candidates.select { |i|  anagram?(i) }
+    candidates.select { |i|  anagram?(i.downcase) }
   end
 
   def anagram?(candidate)
-    candidate.downcase.chars.sort == @word.chars.sort && candidate.downcase != @word
+    candidate.chars.sort == @word.chars.sort && candidate != @word
   end
 end

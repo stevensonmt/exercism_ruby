@@ -1,26 +1,25 @@
 class Nucleotide
 
   NUCLEOTIDES = ["A", "G", "C", "T"]
+  attr_reader :histogram
 
   def self.from_dna(input)
-    Nucleotide.new(input)
+    raise ArgumentError unless valid_dna?(input)
+    new(input)
   end
 
   def initialize(dna)
-    @dna = dna
-    raise ArgumentError unless valid_DNA?
+    @histogram =  NUCLEOTIDES.each_with_object({}) do |nuc, hist|
+                    hist[nuc] = dna.count(nuc)
+                  end
   end
 
   def count(ltr)
     histogram[ltr]
   end
 
-  def histogram
-    NUCLEOTIDES.each_with_object({}){|char, o| o[char] = @dna.count(char)}
-  end
-
-  def valid_DNA?
-    (@dna.chars.uniq - NUCLEOTIDES).empty?
+  def self.valid_dna?(dna)
+    dna.chars.none? {|ltr| !NUCLEOTIDES.include?(ltr) }
   end
 
 end
